@@ -5,6 +5,20 @@ import 'package:newtify/consts.dart';
 
 WebSocket sendWebSocket;
 
+void send(String action, Map<String, dynamic> body) {
+  var msg = <String, dynamic>{
+    ACTION: action,
+  };
+
+  for (var key in body.keys) {
+    msg[key] = body[key];
+  }
+
+  var str = jsonEncode(msg);
+
+  sendWebSocket.send(str);
+}
+
 void main() {
   connectSendWebSocket();
 }
@@ -16,6 +30,32 @@ void connectSendWebSocket() {
   listenMutation();
   listenScroll();
   listenClick();
+  listenTouch();
+}
+
+void listenTouch() {
+  void handler(String action, List<Touch> touches) {
+    touches.forEach((touch) {
+      send(action,
+          <String, int>{CLIENT_X: touch.client.x, CLIENT_Y: touch.client.y});
+    });
+  }
+
+  window.onTouchStart.listen((e) {
+    handler(TOUCH_START, e.touches);
+  });
+
+  window.onTouchMove.listen((e) {
+    handler(TOUCH_MOVE, e.touches);
+  });
+
+  window.onTouchEnd.listen((e) {
+    send(TOUCH_END, {});
+  });
+
+  window.onTouchCancel.listen((e) {
+    send(TOUCH_END, {});
+  });
 }
 
 void listenClick() {

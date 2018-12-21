@@ -53,7 +53,16 @@ void onMessage(String msg) {
       return;
     case CLICK:
       onClick(msgMap);
+      return;
+    case TOUCH_END:
+    case TOUCH_START:
+    case TOUCH_MOVE:
+      forward(msgMap);
   }
+}
+
+void forward(dynamic msg) {
+  receiveWebSocket.add(jsonEncode(msg));
 }
 
 void onClick(msgMap) {

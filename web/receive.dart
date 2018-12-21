@@ -4,9 +4,15 @@ import 'dart:html';
 import 'package:newtify/consts.dart';
 
 WebSocket receiveWebSocket;
+DivElement touchCursor;
 
 void main() {
   connectReceiveWebSocket();
+  touchCursor = new DivElement()
+    ..style.position = "fixed"
+    ..style.width = "10px"
+    ..style.height = "10px"
+    ..style.backgroundColor = "pink";
 }
 
 void connectReceiveWebSocket() {
@@ -27,7 +33,28 @@ void receiveHtml(MessageEvent e) {
       return;
     case CLICK:
       onClick(msg);
+      return;
+    case TOUCH_START:
+    case TOUCH_MOVE:
+      onTouchMove(msg);
+      return;
+    case TOUCH_END:
+      onTouchEnd(msg);
+      return;
   }
+}
+
+void onTouchEnd(Map<String, Object> msg) {
+  touchCursor.style.display = "none";
+}
+
+void onTouchMove(Map<String, Object> msg) {
+  int y = msg[CLIENT_Y];
+  int x = msg[CLIENT_X];
+  touchCursor.style
+    ..display = "block"
+    ..top = "${y - 5}px"
+    ..left = "${x - 5}px";
 }
 
 void onClick(Map<String, Object> msg) {
@@ -76,7 +103,8 @@ void onReceiveMutating(Map<String, Object> msg) {
 
   document.body
     ..nodes.clear()
-    ..append(bodyFrag);
+    ..append(bodyFrag)
+    ..append(touchCursor);
 }
 
 void sanitize(DocumentFragment frag) {

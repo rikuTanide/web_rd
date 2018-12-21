@@ -9,12 +9,18 @@ define(['dart_sdk'], function(dart_sdk) {
   const dartx = dart_sdk.dartx;
   const _root = Object.create(null);
   const receive = Object.create(_root);
+  const $position = dartx.position;
+  const $width = dartx.width;
+  const $height = dartx.height;
+  const $backgroundColor = dartx.backgroundColor;
   const $onMessage = dartx.onMessage;
   const $data = dartx.data;
   const $_get = dartx._get;
+  const $display = dartx.display;
+  const $top = dartx.top;
+  const $left = dartx.left;
   const $split = dartx.split;
   const $querySelectorAll = dartx.querySelectorAll;
-  const $backgroundColor = dartx.backgroundColor;
   const $animate = dartx.animate;
   const $scrollTo = dartx.scrollTo;
   const $nodes = dartx.nodes;
@@ -41,10 +47,22 @@ define(['dart_sdk'], function(dart_sdk) {
     /*receive.receiveWebSocket*/get receiveWebSocket() {
       return null;
     },
-    set receiveWebSocket(_) {}
+    set receiveWebSocket(_) {},
+    /*receive.touchCursor*/get touchCursor() {
+      return null;
+    },
+    set touchCursor(_) {}
   });
   receive.main = function() {
     receive.connectReceiveWebSocket();
+    receive.touchCursor = (() => {
+      let _ = html.DivElement.new();
+      _.style[$position] = "fixed";
+      _.style[$width] = "10px";
+      _.style[$height] = "10px";
+      _.style[$backgroundColor] = "pink";
+      return _;
+    })();
   };
   receive.connectReceiveWebSocket = function() {
     receive.receiveWebSocket = html.WebSocket.new("ws://localhost:9000/receive");
@@ -67,8 +85,30 @@ define(['dart_sdk'], function(dart_sdk) {
       case "click":
       {
         receive.onClick(msg);
+        return;
+      }
+      case "touch_start":
+      case "touch_move":
+      {
+        receive.onTouchMove(msg);
+        return;
+      }
+      case "touch_end":
+      {
+        receive.onTouchEnd(msg);
+        return;
       }
     }
+  };
+  receive.onTouchEnd = function(msg) {
+    receive.touchCursor.style[$display] = "none";
+  };
+  receive.onTouchMove = function(msg) {
+    let y = core.int._check(msg[$_get]("client_y"));
+    let x = core.int._check(msg[$_get]("client_x"));
+    receive.touchCursor.style[$display] = "block";
+    receive.touchCursor.style[$top] = dart.str(dart.notNull(y) - 5) + "px";
+    receive.touchCursor.style[$left] = dart.str(dart.notNull(x) - 5) + "px";
   };
   receive.onClick = function(msg) {
     let xpath = core.String._check(msg[$_get]("xpath"));
@@ -100,6 +140,7 @@ define(['dart_sdk'], function(dart_sdk) {
     let _$ = html.document.body;
     _$[$nodes][$clear]();
     _$[$append](bodyFrag);
+    _$[$append](receive.touchCursor);
   };
   receive.sanitize = function(frag) {
     let scripts = frag[$querySelectorAll](html.Element, "script");
@@ -117,7 +158,7 @@ define(['dart_sdk'], function(dart_sdk) {
   };
   dart.trackLibraries("web/receive.ddc", {
     "receive.dart": receive
-  }, '{"version":3,"sourceRoot":"","sources":["receive.dart"],"names":[],"mappings":";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;MAKU,wBAAgB;;;;;;AAGxB,mCAAuB;EACzB;;AAGE,+BAAmB,AAAI,kBAAS,CAAC;AACjC,4BAAgB,YAAU,OAAO,CAAC,QAAC,CAAC,IAAK,mBAAW,CAAC,CAAC;EACxD;iCAEiB,CAAc;AAC7B,QAAO,0BAAO,CAAC,OAAK;AACpB,QAAoB,kCAAM,kBAAU,CAAC,IAAI;AAEzC,YAAQ,GAAG,QAAC,QAAM;UACX,WAAQ;;AACX,iCAAiB,CAAC,GAAG;AACrB;;UACG,SAAM;;AACT,yBAAS,CAAC,GAAG;AACb;;UACG,QAAK;;AACR,uBAAO,CAAC,GAAG;;;EAEjB;6BAEa,GAAuB;AAClC,QAAO,2BAAQ,GAAG,QAAC,OAAK;AACxB,QAAI,UAAU,KAAK,QAAM,CAAC,YAAK;AAC/B,QAAI,QAAQ,QAAG,MAAM,CAAC,KAAK,QAAM,CAAC,YAAK;AAEvC,QAAI,WAAW,aAAQ,mBAAiB,eAAC,OAAO;AAChD,QAAI,UAAU,QAAQ,MAAC,KAAK;AAE5B,QAAI,kBAAkB,OAAO,MAAM,kBAAgB;AACnD,QAAI,eAAe,KAAI,IAAI;AACzB,qBAAe,GAAG;;AAGpB,QAAI,YAAY,mCACd,0CACE,mBAAmB,SAErB,0CACE,mBAAmB,eAAe;AAGtC,WAAO,UAAQ,CAAC,SAAS,EAAE,UAAU;EACvC;+BAEe,GAAuB;AACpC,QAAI,0BAAU,GAAG,QAAC,UAAQ;AAC1B,eAAM,WAAS,CAAC,GAAG,OAAO;EAC5B;uCAEuB,GAAuB;AAC5C,QAAI,WAAW,AAAI,0BAAqB,oBAAC,GAAG,QAAC,MAAI,oBAC9B,sBAAiB,QAAQ;AAC5C,QAAI,WAAW,AAAI,0BAAqB,oBAAC,GAAG,QAAC,MAAI,oBAC9B,sBAAiB,QAAQ;AAE5C,oBAAQ,CAAC,QAAQ;AACjB,0BAAc,CAAC,QAAQ,QAAM;AAC7B,oBAAQ,CAAC,QAAQ;AACjB,0BAAc,CAAC,QAAQ,QAAM;AAE7B,yBAAQ,OAAK;;eAEF,QAAQ;AAEnB,0BAAQ,KAAK;;gBAEF,QAAQ;EACrB;8BAEc,IAAqB;AACjC,QAAI,UAAU,IAAI,mBAAiB,eAAC;AACpC,aAAS,SAAU,QAAO,EAAE;AAC1B,YAAM,SAAO;;EAEjB;oCAEoB,IAAe;AACjC,QAAI,QAAM,CAAC,QAAC,CAAC,wBAAK,CAAC,2BAAwB,CAAC,QAAC,CAAC,IAAK,mBAAW,yBAAC,CAAC;EAClE;iCAEiB,OAAmB;AAClC,QAAI,OAAO,OAAO,aAAW,OAAK,QACxB,CAAC,QAAC,GAAG,IAAK,GAAG,cAAY,eAAa,CAAC;AACjD,QAAI,UAAQ,CAAC,QAAC,GAAG,IAAK,OAAO,aAAW,SAAO,CAAC,GAAG;AACnD,0BAAc,CAAC,OAAO,QAAM;EAC9B","file":"receive.ddc.js"}');
+  }, '{"version":3,"sourceRoot":"","sources":["receive.dart"],"names":[],"mappings":";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;MAKU,wBAAgB;;;;MACf,mBAAW;;;;;;AAGpB,mCAAuB;AACvB;cAAc,AAAI,mBAAU;2BACP;wBACH;yBACC;kCACS;;;EAC9B;;AAGE,+BAAmB,AAAI,kBAAS,CAAC;AACjC,4BAAgB,YAAU,OAAO,CAAC,QAAC,CAAC,IAAK,mBAAW,CAAC,CAAC;EACxD;iCAEiB,CAAc;AAC7B,QAAO,0BAAO,CAAC,OAAK;AACpB,QAAoB,kCAAM,kBAAU,CAAC,IAAI;AAEzC,YAAQ,GAAG,QAAC,QAAM;UACX,WAAQ;;AACX,iCAAiB,CAAC,GAAG;AACrB;;UACG,SAAM;;AACT,yBAAS,CAAC,GAAG;AACb;;UACG,QAAK;;AACR,uBAAO,CAAC,GAAG;AACX;;UACG,cAAW;UACX,aAAU;;AACb,2BAAW,CAAC,GAAG;AACf;;UACG,YAAS;;AACZ,0BAAU,CAAC,GAAG;AACd;;;EAEN;gCAEgB,GAAuB;AACrC,uBAAW,MAAM,UAAQ,GAAG;EAC9B;iCAEiB,GAAuB;AACtC,QAAI,oBAAI,GAAG,QAAC,UAAQ;AACpB,QAAI,oBAAI,GAAG,QAAC,UAAQ;AACpB,IAAA,AACE,AAAE,mBADO,MAAM,UACN,GAAG;IADd,AAEE,AAAE,mBAFO,MAAM,MAEV,GAAG,SAAK,aAAF,CAAC,IAAG;IAFjB,AAGE,AAAE,mBAHO,MAAM,OAGT,GAAG,SAAK,aAAF,CAAC,IAAG;EACpB;6BAEa,GAAuB;AAClC,QAAO,2BAAQ,GAAG,QAAC,OAAK;AACxB,QAAI,UAAU,KAAK,QAAM,CAAC,YAAK;AAC/B,QAAI,QAAQ,QAAG,MAAM,CAAC,KAAK,QAAM,CAAC,YAAK;AAEvC,QAAI,WAAW,aAAQ,mBAAiB,eAAC,OAAO;AAChD,QAAI,UAAU,QAAQ,MAAC,KAAK;AAE5B,QAAI,kBAAkB,OAAO,MAAM,kBAAgB;AACnD,QAAI,eAAe,KAAI,IAAI;AACzB,qBAAe,GAAG;;AAGpB,QAAI,YAAY,mCACd,0CACE,mBAAmB,SAErB,0CACE,mBAAmB,eAAe;AAGtC,WAAO,UAAQ,CAAC,SAAS,EAAE,UAAU;EACvC;+BAEe,GAAuB;AACpC,QAAI,0BAAU,GAAG,QAAC,UAAQ;AAC1B,eAAM,WAAS,CAAC,GAAG,OAAO;EAC5B;uCAEuB,GAAuB;AAC5C,QAAI,WAAW,AAAI,0BAAqB,oBAAC,GAAG,QAAC,MAAI,oBAC9B,sBAAiB,QAAQ;AAC5C,QAAI,WAAW,AAAI,0BAAqB,oBAAC,GAAG,QAAC,MAAI,oBAC9B,sBAAiB,QAAQ;AAE5C,oBAAQ,CAAC,QAAQ;AACjB,0BAAc,CAAC,QAAQ,QAAM;AAC7B,oBAAQ,CAAC,QAAQ;AACjB,0BAAc,CAAC,QAAQ,QAAM;AAE7B,yBAAQ,OAAK;;eAEF,QAAQ;AAEnB,0BAAQ,KAAK;;gBAEF,QAAQ;gBACR,mBAAW;EACxB;8BAEc,IAAqB;AACjC,QAAI,UAAU,IAAI,mBAAiB,eAAC;AACpC,aAAS,SAAU,QAAO,EAAE;AAC1B,YAAM,SAAO;;EAEjB;oCAEoB,IAAe;AACjC,QAAI,QAAM,CAAC,QAAC,CAAC,wBAAK,CAAC,2BAAwB,CAAC,QAAC,CAAC,IAAK,mBAAW,yBAAC,CAAC;EAClE;iCAEiB,OAAmB;AAClC,QAAI,OAAO,OAAO,aAAW,OAAK,QACxB,CAAC,QAAC,GAAG,IAAK,GAAG,cAAY,eAAa,CAAC;AACjD,QAAI,UAAQ,CAAC,QAAC,GAAG,IAAK,OAAO,aAAW,SAAO,CAAC,GAAG;AACnD,0BAAc,CAAC,OAAO,QAAM;EAC9B","file":"receive.ddc.js"}');
   // Exports:
   return {
     receive: receive
