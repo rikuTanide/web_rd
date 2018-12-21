@@ -6,6 +6,9 @@ import 'package:newtify/consts.dart';
 WebSocket sendWebSocket;
 
 void send(String action, Map<String, dynamic> body) {
+  if (sendWebSocket == null) {
+    return;
+  }
   var msg = <String, dynamic>{
     ACTION: action,
   };
@@ -95,6 +98,7 @@ void sendHtml() {
     ACTION: MUTATING,
     HEAD: document.head.innerHtml,
     BODY: document.body.innerHtml,
+    URL: window.location.href,
   };
   sendWebSocket.send(jsonEncode(msg));
 }

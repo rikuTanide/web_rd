@@ -11,4 +11,5 @@ const String ACTION = 'action',
     CLIENT_X = 'client_x',
     CLIENT_Y = 'client_y',
     CLICK = 'click',
-    XPATH = 'xpath';
+    XPATH = 'xpath',
+    URL = 'url';

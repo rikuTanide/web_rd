@@ -96,18 +96,20 @@ void onScroll(msgMap) {
 void onMutating(Map<String, Object> msgMap) {
   String head = msgMap[HEAD];
   String body = msgMap[BODY];
+  String url = msgMap[URL];
   if (receiveWebSocket == null) {
     return;
   }
 
-  sendHtml(head, body);
+  sendHtml(head, body, url);
 }
 
-void sendHtml(String head, String body) {
+void sendHtml(String head, String body, String url) {
   var msg = {
     ACTION: MUTATING,
     HEAD: head,
     BODY: body,
+    URL: url,
   };
 
   receiveWebSocket.add(jsonEncode(msg));

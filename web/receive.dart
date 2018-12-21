@@ -17,10 +17,10 @@ void main() {
 
 void connectReceiveWebSocket() {
   receiveWebSocket = new WebSocket('ws://localhost:9000/receive');
-  receiveWebSocket.onMessage.listen((e) => receiveHtml(e));
+  receiveWebSocket.onMessage.listen((e) => receiveMessage(e));
 }
 
-void receiveHtml(MessageEvent e) {
+void receiveMessage(MessageEvent e) {
   String data = e.data;
   Map<String, Object> msg = jsonDecode(data);
 
@@ -91,6 +91,7 @@ void onReceiveMutating(Map<String, Object> msg) {
       treeSanitizer: NodeTreeSanitizer.trusted);
   var bodyFrag = new DocumentFragment.html(msg[BODY],
       treeSanitizer: NodeTreeSanitizer.trusted);
+  var base = new BaseElement()..href = msg[URL];
 
   sanitize(headFrag);
   deleteAttrsAll(headFrag.nodes);
@@ -99,7 +100,8 @@ void onReceiveMutating(Map<String, Object> msg) {
 
   document.head
     ..nodes.clear()
-    ..append(headFrag);
+    ..append(headFrag)
+    ..append(base);
 
   document.body
     ..nodes.clear()
