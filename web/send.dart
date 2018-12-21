@@ -21,11 +21,15 @@ void connectSendWebSocket() {
 void listenClick() {
   window.onClick.listen((e) {
     var element = e.target as HtmlElement;
-    var tags = document.querySelectorAll(element.tagName);
+    var tagName = element.tagName.toLowerCase();
+    if (tagName == "body" || tagName == "html") {
+      return;
+    }
+    var tags = document.querySelectorAll(tagName);
     var elementIndex = tags.indexOf(element);
     var msg = {
       ACTION: CLICK,
-      XPATH: "${element.tagName}/${elementIndex}",
+      XPATH: "${tagName}/${elementIndex}",
     };
     sendWebSocket.send(jsonEncode(msg));
   });

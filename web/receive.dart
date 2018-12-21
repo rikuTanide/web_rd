@@ -37,7 +37,21 @@ void onClick(Map<String, Object> msg) {
 
   var elements = document.querySelectorAll(tagName);
   var element = elements[index];
-  element.style.backgroundColor = "red";
+
+  var backgroundColor = element.style.backgroundColor;
+  if (backgroundColor == "") {
+    backgroundColor = "transparent";
+  }
+
+  var keyFlames = <Map<String, dynamic>>[
+    {
+      "backgroundColor": "red",
+    },
+    {
+      "backgroundColor": backgroundColor,
+    }
+  ];
+  element.animate(keyFlames, 1000).play();
 }
 
 void onScrollY(Map<String, Object> msg) {
