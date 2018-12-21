@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'dart:html';
 
-import 'package:newtify/consts.dart';
+import 'package:websocket_rd/consts.dart';
 
 WebSocket receiveWebSocket;
 DivElement touchCursor;
 
-void main() {
-  connectReceiveWebSocket();
+void start(String wsHost, int wsPort) {
+  connectReceiveWebSocket(wsHost, wsPort);
   touchCursor = new DivElement()
     ..style.position = "fixed"
     ..style.width = "10px"
@@ -15,8 +15,8 @@ void main() {
     ..style.backgroundColor = "pink";
 }
 
-void connectReceiveWebSocket() {
-  receiveWebSocket = new WebSocket('ws://localhost:9000/receive');
+void connectReceiveWebSocket(String wsHost, int wsPort) {
+  receiveWebSocket = new WebSocket("wss://${wsHost}:${wsPort}/receive");
   receiveWebSocket.onMessage.listen((e) => receiveMessage(e));
 }
 

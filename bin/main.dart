@@ -2,7 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
 
-import 'package:newtify/consts.dart';
+import 'package:websocket_rd/consts.dart';
+
 
 void main() {
   HttpServer.bind(Platform.environment['DART_HOST'],

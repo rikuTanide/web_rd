@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:html';
 
-import 'package:newtify/consts.dart';
+import 'package:websocket_rd/consts.dart';
 
 WebSocket sendWebSocket;
 
@@ -22,12 +22,12 @@ void send(String action, Map<String, dynamic> body) {
   sendWebSocket.send(str);
 }
 
-void main() {
-  connectSendWebSocket();
+void start(String wsHost, int wsPort) {
+  connectSendWebSocket(wsHost, wsPort);
 }
 
-void connectSendWebSocket() {
-  sendWebSocket = new WebSocket('ws://localhost:9000/send');
+void connectSendWebSocket(String wsHost, int wsPort) {
+  sendWebSocket = new WebSocket("wss://${wsHost}:${wsPort}/send");
   sendWebSocket.onOpen.listen((_) => sendHtml());
 
   listenMutation();

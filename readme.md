@@ -6,4 +6,5 @@ WebSocketでリモートデスクトップを実現する。
  - Touchを転送
  - BASEを入れる
  - カラーミーで実装
+ - Input
  - WebRTC化
