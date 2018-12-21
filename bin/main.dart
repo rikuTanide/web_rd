@@ -1,23 +1,111 @@
+import 'dart:async';
 import 'dart:io';
+import 'dart:convert';
+
+import 'package:newtify/consts.dart';
 
 void main() {
-  HttpServer
-      .bind('ec2-52-193-251-39.ap-northeast-1.compute.amazonaws.com', 8080)
-      .then((server) {
-    server.listen((req) => onRequest(req));
-  });
+  HttpServer.bind(Platform.environment['DART_HOST'],
+          int.parse(Platform.environment['DART_PORT']))
+      .then((server) => onServer(server));
 }
 
-Future onRequest(HttpRequest req) async {
-  print(req.uri);
-  List<int> chars = [];
+void onServer(HttpServer server) async {
+  await for (var req in server) {
+    if (WebSocketTransformer.isUpgradeRequest(req)) {
+      onWebSocketRequest(req);
+    } else {
+      req.response.close();
+    }
+  }
+}
 
-  await for (var char in req) {
-    chars.addAll(char);
+void onWebSocketRequest(HttpRequest req) {
+  if (req.uri.path == "/send") {
+    onSendWebSocket(req);
+  } else if (req.uri.path == "/receive") {
+    onReceiveWebSocket(req);
+  } else {
+    req.response.close();
+  }
+}
+
+WebSocket receiveWebSocket, sendWebSocket;
+
+void onSendWebSocket(HttpRequest req) async {
+  sendWebSocket = await WebSocketTransformer.upgrade(req);
+  await for (var msg in sendWebSocket) {
+    onMessage(msg);
+  }
+}
+
+void onMessage(String msg) {
+  var msgMap = jsonDecode(msg);
+  switch (msgMap[ACTION]) {
+    case CONNECT:
+      onConnect();
+      return;
+    case MUTATING:
+      onMutating(msgMap);
+      return;
+    case SCROLL:
+      onScroll(msgMap);
+      return;
+    case CLICK:
+      onClick(msgMap);
+  }
+}
+
+void onClick(msgMap) {
+  String xpath = msgMap[XPATH];
+  if (receiveWebSocket == null) {
+    return;
   }
 
-  var str = new String.fromCharCodes(chars);
-  print(str);
-  req.response.write("yeah");
-  req.response.close();
+  var msg = {
+    ACTION: CLICK,
+    XPATH: xpath,
+  };
+
+  receiveWebSocket.add(jsonEncode(msg));
+}
+
+void onScroll(msgMap) {
+  int scrollY = msgMap[SCROLL_Y];
+  if (receiveWebSocket == null) {
+    return;
+  }
+
+  var msg = {
+    ACTION: SCROLL,
+    SCROLL_Y: scrollY,
+  };
+
+  receiveWebSocket.add(jsonEncode(msg));
+}
+
+void onMutating(Map<String, Object> msgMap) {
+  String head = msgMap[HEAD];
+  String body = msgMap[BODY];
+  if (receiveWebSocket == null) {
+    return;
+  }
+
+  sendHtml(head, body);
+}
+
+void sendHtml(String head, String body) {
+  var msg = {
+    ACTION: MUTATING,
+    HEAD: head,
+    BODY: body,
+  };
+
+  receiveWebSocket.add(jsonEncode(msg));
+}
+
+void onConnect() {}
+
+void onReceiveWebSocket(HttpRequest req) async {
+  receiveWebSocket = await WebSocketTransformer.upgrade(req);
 }

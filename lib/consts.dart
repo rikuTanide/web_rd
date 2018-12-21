@@ -1,0 +1,10 @@
+const String ACTION = 'action',
+    CONNECT = 'connect',
+    MUTATING = 'mutating',
+    HEAD = 'head',
+    BODY = 'body',
+    SCROLL = 'scroll',
+    SCROLL_Y = 'scroll_y',
+    TOUCH_MOVE = 'touch_move',
+    CLICK = 'click',
+    XPATH = 'xpath';

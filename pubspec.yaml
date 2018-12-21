@@ -8,5 +8,8 @@ description: >-
 author: Natalie Weizenbaum <nweiz@google.com>
 homepage: https://newtify.dartlang.org
 documentation: https://docs.newtify.com
-dependencies:
-  browser: ^0.10.0
+dev_dependencies:
+  # ···
+  build_runner: ^1.0.0
+  build_test: ^0.10.2
+  build_web_compilers: ^0.4.0
