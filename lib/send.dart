@@ -42,6 +42,7 @@ void sendBySkyWay(String action, Map<String, dynamic> body) {
 
 void start(String schema, String wsHost, int wsPort, String skyWayKey) {
   connectSkyWay(skyWayKey);
+
   connectSendWebSocket(schema, wsHost, wsPort);
 }
 
@@ -53,9 +54,18 @@ void connectSkyWay(String skyWayKey) {
 
 void connectSendWebSocket(String schema, String wsHost, int wsPort) {
   sendWebSocket = new WebSocket("${schema}://${wsHost}:${wsPort}/send");
-  sendWebSocket.onOpen.listen((_) => sendConnect());
+  sendWebSocket.onOpen.listen((_) => onWebSocketOpen());
   sendWebSocket.onMessage.listen((data) => receiveWebSocketMessage(data));
 
+  listenMutation();
+  listenScroll();
+  listenClick();
+  listenTouch();
+  listenInput();
+}
+
+void onWebSocketOpen() {
+  sendConnect();
   listenMutation();
   listenScroll();
   listenClick();

@@ -8,4 +8,5 @@ dev_dependencies:
   build_test: ^0.10.2
   build_web_compilers: ^0.4.0
   skyway_interop:
+#    path: "../skyway_interop"
     git: git://github.com/rikuTanide/skyway_interop.git
