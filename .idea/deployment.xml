@@ -5,7 +5,7 @@
       <paths name="desktop_ws">
         <serverdata>
           <mappings>
-            <mapping deploy="/home/ubuntu" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/home/ubuntu/websocket_rd" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>

@@ -41,7 +41,16 @@ void receiveMessage(MessageEvent e) {
     case TOUCH_END:
       onTouchEnd(msg);
       return;
+    case INPUT:
+      onInput(msg);
+      return;
   }
+}
+
+void onInput(Map<String, Object> msg) {
+  String xpath = msg[XPATH];
+  var element = getByXPath(xpath);
+  (element as InputElement).value = msg[VALUE];
 }
 
 void onTouchEnd(Map<String, Object> msg) {
@@ -57,14 +66,18 @@ void onTouchMove(Map<String, Object> msg) {
     ..left = "${x - 5}px";
 }
 
-void onClick(Map<String, Object> msg) {
-  String xpath = msg[XPATH];
-  var tagName = xpath.split('/')[0];
-  var index = int.parse(xpath.split('/')[1]);
+Element getByXPath(String xpath) {
+  var xpaths = xpath.split('/');
+  var tagName = xpaths[0];
+  var index = int.parse(xpaths[1]);
 
   var elements = document.querySelectorAll(tagName);
-  var element = elements[index];
+  return elements[index];
+}
 
+void onClick(Map<String, Object> msg) {
+  String xpath = msg[XPATH];
+  var element = getByXPath(xpath);
   var backgroundColor = element.style.backgroundColor;
   if (backgroundColor == "") {
     backgroundColor = "transparent";

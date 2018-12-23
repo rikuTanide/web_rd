@@ -58,6 +58,7 @@ void onMessage(String msg) {
     case TOUCH_END:
     case TOUCH_START:
     case TOUCH_MOVE:
+    case INPUT:
       forward(msgMap);
   }
 }

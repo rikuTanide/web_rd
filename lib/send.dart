@@ -34,6 +34,19 @@ void connectSendWebSocket(String wsHost, int wsPort) {
   listenScroll();
   listenClick();
   listenTouch();
+  listenInput();
+}
+
+void listenInput() {
+  window.onKeyUp.listen((e) {
+    print("ii");
+    var target = e.target;
+    if (target is InputElement) {
+      var xpath = getXpath(target);
+      var value = target.value;
+      send(INPUT, {XPATH: xpath, VALUE: value});
+    }
+  });
 }
 
 void listenTouch() {
@@ -68,14 +81,19 @@ void listenClick() {
     if (tagName == "body" || tagName == "html") {
       return;
     }
-    var tags = document.querySelectorAll(tagName);
-    var elementIndex = tags.indexOf(element);
     var msg = {
       ACTION: CLICK,
-      XPATH: "${tagName}/${elementIndex}",
+      XPATH: getXpath(element),
     };
     sendWebSocket.send(jsonEncode(msg));
   });
+}
+
+String getXpath(HtmlElement element) {
+  var tagName = element.tagName.toLowerCase();
+  var tags = document.querySelectorAll(tagName);
+  var elementIndex = tags.indexOf(element);
+  return "${tagName}/${elementIndex}";
 }
 
 void listenScroll() {
