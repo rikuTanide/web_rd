@@ -30,11 +30,45 @@ void onWebSocketRequest(HttpRequest req) {
   }
 }
 
-WebSocket receiveWebSocket, sendWebSocket;
+WebSocket receiverWebSocket, senderWebSocket;
+
+void sendToSenderWebSocket(String action, Map<String, dynamic> body) {
+  if (senderWebSocket == null) {
+    return;
+  }
+  var msg = <String, dynamic>{
+    ACTION: action,
+  };
+
+  for (var key in body.keys) {
+    msg[key] = body[key];
+  }
+
+  var str = jsonEncode(msg);
+
+  senderWebSocket.add(str);
+}
+
+void sendToReceiverWebSocket(String action, Map<String, dynamic> body) {
+  if (receiverWebSocket == null) {
+    return;
+  }
+  var msg = <String, dynamic>{
+    ACTION: action,
+  };
+
+  for (var key in body.keys) {
+    msg[key] = body[key];
+  }
+
+  var str = jsonEncode(msg);
+
+  receiverWebSocket.add(str);
+}
 
 void onSendWebSocket(HttpRequest req) async {
-  sendWebSocket = await WebSocketTransformer.upgrade(req);
-  await for (var msg in sendWebSocket) {
+  senderWebSocket = await WebSocketTransformer.upgrade(req);
+  await for (var msg in senderWebSocket) {
     onMessage(msg);
   }
 }
@@ -45,81 +79,38 @@ void onMessage(String msg) {
     case CONNECT:
       onConnect();
       return;
-    case MUTATING:
-      onMutating(msgMap);
-      return;
-    case SCROLL:
-      onScroll(msgMap);
-      return;
-    case CLICK:
-      onClick(msgMap);
-      return;
-    case TOUCH_END:
-    case TOUCH_START:
-    case TOUCH_MOVE:
-    case INPUT:
-      forward(msgMap);
   }
 }
 
-void forward(dynamic msg) {
-  receiveWebSocket.add(jsonEncode(msg));
+String receiverPeerID = "";
+
+void onReceiverSkyWayOpen(msgMap) {
+  receiverPeerID = msgMap[SKYWAY_PEER_ID];
+  sendToSenderWebSocket(RECEIVER_SKYWAY_OPEN, {
+    SKYWAY_PEER_ID: receiverPeerID,
+  });
 }
 
-void onClick(msgMap) {
-  String xpath = msgMap[XPATH];
-  if (receiveWebSocket == null) {
-    return;
+void onConnect() {
+  if (receiverPeerID != "") {
+    sendToSenderWebSocket(RECEIVER_SKYWAY_OPEN, {
+      SKYWAY_PEER_ID: receiverPeerID,
+    });
   }
-
-  var msg = {
-    ACTION: CLICK,
-    XPATH: xpath,
-  };
-
-  receiveWebSocket.add(jsonEncode(msg));
 }
-
-void onScroll(msgMap) {
-  int scrollY = msgMap[SCROLL_Y];
-  if (receiveWebSocket == null) {
-    return;
-  }
-
-  var msg = {
-    ACTION: SCROLL,
-    SCROLL_Y: scrollY,
-  };
-
-  receiveWebSocket.add(jsonEncode(msg));
-}
-
-void onMutating(Map<String, Object> msgMap) {
-  String head = msgMap[HEAD];
-  String body = msgMap[BODY];
-  String url = msgMap[URL];
-  int scrollY = msgMap[SCROLL_Y];
-  if (receiveWebSocket == null) {
-    return;
-  }
-
-  sendHtml(head, body, url, scrollY);
-}
-
-void sendHtml(String head, String body, String url, int scrollY) {
-  var msg = {
-    ACTION: MUTATING,
-    HEAD: head,
-    BODY: body,
-    URL: url,
-    SCROLL_Y: scrollY,
-  };
-
-  receiveWebSocket.add(jsonEncode(msg));
-}
-
-void onConnect() {}
 
 void onReceiveWebSocket(HttpRequest req) async {
-  receiveWebSocket = await WebSocketTransformer.upgrade(req);
+  receiverWebSocket = await WebSocketTransformer.upgrade(req);
+  await for (var msg in receiverWebSocket) {
+    onReceiverMessage(msg);
+  }
+}
+
+void onReceiverMessage(String msg) {
+  var msgMap = jsonDecode(msg);
+  switch (msgMap[ACTION]) {
+    case RECEIVER_SKYWAY_OPEN:
+      onReceiverSkyWayOpen(msgMap);
+      return;
+  }
 }

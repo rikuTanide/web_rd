@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'dart:html';
 
+import 'package:skyway_interop/skyway.dart';
 import 'package:websocket_rd/consts.dart';
 
 WebSocket sendWebSocket;
 
-void send(String action, Map<String, dynamic> body) {
+void sendByWebSocket(String action, Map<String, dynamic> body) {
   if (sendWebSocket == null) {
     return;
   }
@@ -22,13 +23,38 @@ void send(String action, Map<String, dynamic> body) {
   sendWebSocket.send(str);
 }
 
-void start(String wsHost, int wsPort) {
-  connectSendWebSocket(wsHost, wsPort);
+void sendBySkyWay(String action, Map<String, dynamic> body) {
+  if (connection == null) {
+    return;
+  }
+  var msg = <String, dynamic>{
+    ACTION: action,
+  };
+
+  for (var key in body.keys) {
+    msg[key] = body[key];
+  }
+
+  var str = jsonEncode(msg);
+
+  connection.send(str);
 }
 
-void connectSendWebSocket(String wsHost, int wsPort) {
-  sendWebSocket = new WebSocket("wss://${wsHost}:${wsPort}/send");
-  sendWebSocket.onOpen.listen((_) => sendHtml());
+void start(String schema, String wsHost, int wsPort, String skyWayKey) {
+  connectSkyWay(skyWayKey);
+  connectSendWebSocket(schema, wsHost, wsPort);
+}
+
+Peer peer;
+
+void connectSkyWay(String skyWayKey) {
+  peer = new Peer(skyWayKey);
+}
+
+void connectSendWebSocket(String schema, String wsHost, int wsPort) {
+  sendWebSocket = new WebSocket("${schema}://${wsHost}:${wsPort}/send");
+  sendWebSocket.onOpen.listen((_) => sendConnect());
+  sendWebSocket.onMessage.listen((data) => receiveWebSocketMessage(data));
 
   listenMutation();
   listenScroll();
@@ -37,14 +63,37 @@ void connectSendWebSocket(String wsHost, int wsPort) {
   listenInput();
 }
 
+void receiveWebSocketMessage(MessageEvent e) {
+  String data = e.data;
+  Map<String, Object> msg = jsonDecode(data);
+
+  switch (msg[ACTION]) {
+    case RECEIVER_SKYWAY_OPEN:
+      onReceiverSkyWayOpen(msg);
+      return;
+  }
+}
+
+Connection connection;
+
+void onReceiverSkyWayOpen(Map<String, Object> msg) async {
+  String peerID = msg[SKYWAY_PEER_ID];
+  await peer.onOpen;
+  connection = await peer.connect(peerID);
+  sendHtml();
+}
+
+void sendConnect() {
+  sendByWebSocket(CONNECT, {});
+}
+
 void listenInput() {
   window.onKeyUp.listen((e) {
-    print("ii");
     var target = e.target;
     if (target is InputElement) {
       var xpath = getXpath(target);
       var value = target.value;
-      send(INPUT, {XPATH: xpath, VALUE: value});
+      sendBySkyWay(INPUT, {XPATH: xpath, VALUE: value});
     }
   });
 }
@@ -52,7 +101,7 @@ void listenInput() {
 void listenTouch() {
   void handler(String action, List<Touch> touches) {
     touches.forEach((touch) {
-      send(action,
+      sendBySkyWay(action,
           <String, int>{CLIENT_X: touch.client.x, CLIENT_Y: touch.client.y});
     });
   }
@@ -66,11 +115,11 @@ void listenTouch() {
   });
 
   window.onTouchEnd.listen((e) {
-    send(TOUCH_END, {});
+    sendBySkyWay(TOUCH_END, {});
   });
 
   window.onTouchCancel.listen((e) {
-    send(TOUCH_END, {});
+    sendBySkyWay(TOUCH_END, {});
   });
 }
 
@@ -82,7 +131,7 @@ void listenClick() {
       return;
     }
 
-    send(CLICK, {
+    sendBySkyWay(CLICK, {
       XPATH: getXpath(element),
     });
   });
@@ -102,7 +151,7 @@ void listenScroll() {
     var msg = {
       SCROLL_Y: window.scrollY,
     };
-    send(SCROLL, msg);
+    sendBySkyWay(SCROLL, msg);
   });
 }
 
@@ -113,7 +162,7 @@ void sendHtml() {
     URL: window.location.href,
     SCROLL_Y: window.scrollY,
   };
-  send(MUTATING, msg);
+  sendBySkyWay(MUTATING, msg);
 }
 
 void listenMutation() {

@@ -8,9 +8,12 @@ void main() {
   var config = jsonDecode(configJson);
   String wsHost = config["host"];
   int wsPort = config["port"];
+  String schema = config["schema"];
+  String skywayKey = config["skywayKey"];
+
   if (config["method"] == "receive") {
-    rdReceive.start(wsHost, wsPort);
+    rdReceive.start(schema, wsHost, wsPort, skywayKey);
   } else if (config["method"] == "send") {
-    rdSend.start(wsHost, wsPort);
+    rdSend.start(schema, wsHost, wsPort, skywayKey);
   }
 }

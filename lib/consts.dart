@@ -14,4 +14,6 @@ const String ACTION = 'action',
     XPATH = 'xpath',
     URL = 'url',
     INPUT = 'change',
-    VALUE = 'value';
+    VALUE = 'value',
+    RECEIVER_SKYWAY_OPEN = 'receiver_skyway_open',
+    SKYWAY_PEER_ID = 'skyway_peer_id';

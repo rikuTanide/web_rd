@@ -1,23 +1,60 @@
 import 'dart:convert';
 import 'dart:html';
 
+import 'package:skyway_interop/skyway.dart';
 import 'package:websocket_rd/consts.dart';
 
-WebSocket receiveWebSocket;
+WebSocket receiverWebSocket;
+Peer peer;
+
 DivElement touchCursor;
 
-void start(String wsHost, int wsPort) {
-  connectReceiveWebSocket(wsHost, wsPort);
+void sendReceiverWebSocket(String action, Map<String, dynamic> body) {
+  if (receiverWebSocket == null) {
+    return;
+  }
+  var msg = <String, dynamic>{
+    ACTION: action,
+  };
+
+  for (var key in body.keys) {
+    msg[key] = body[key];
+  }
+
+  var str = jsonEncode(msg);
+
+  receiverWebSocket.send(str);
+}
+
+void start(String schema, String wsHost, int wsPort, String skyWayKey) {
+  connectReceiveWebSocket(schema, wsHost, wsPort);
   touchCursor = new DivElement()
     ..style.position = "fixed"
     ..style.width = "10px"
     ..style.height = "10px"
     ..style.backgroundColor = "pink";
+  setUpSkyWay(skyWayKey);
 }
 
-void connectReceiveWebSocket(String wsHost, int wsPort) {
-  receiveWebSocket = new WebSocket("wss://${wsHost}:${wsPort}/receive");
-  receiveWebSocket.onMessage.listen((e) => receiveMessage(e));
+void setUpSkyWay(String skyWayKey) async {
+  peer = new Peer(skyWayKey);
+  await peer.onOpen;
+  sendReceiverWebSocket(RECEIVER_SKYWAY_OPEN, {
+    SKYWAY_PEER_ID: peer.peerID,
+  });
+
+  peer.onConnection.listen(onConnection);
+}
+
+void onConnection(Connection connection) {
+  connection.onData.listen((data) {
+    print(data);
+  });
+}
+
+void connectReceiveWebSocket(String schema, String wsHost, int wsPort) {
+  receiverWebSocket = new WebSocket("${schema}://${wsHost}:${wsPort}/receive");
+  receiverWebSocket.onMessage.listen((e) => receiveMessage(e));
 }
 
 void receiveMessage(MessageEvent e) {
