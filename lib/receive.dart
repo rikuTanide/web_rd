@@ -48,18 +48,17 @@ void setUpSkyWay(String skyWayKey) async {
 
 void onConnection(Connection connection) {
   connection.onData.listen((data) {
-    print(data);
+    receiveSkyWayMessage(data);
   });
 }
 
 void connectReceiveWebSocket(String schema, String wsHost, int wsPort) {
   receiverWebSocket = new WebSocket("${schema}://${wsHost}:${wsPort}/receive");
-  receiverWebSocket.onMessage.listen((e) => receiveMessage(e));
+//  receiverWebSocket.onMessage.listen((e) => receiveMessage(e));
 }
 
-void receiveMessage(MessageEvent e) {
-  String data = e.data;
-  Map<String, Object> msg = jsonDecode(data);
+void receiveSkyWayMessage(String data) {
+  Map<String, dynamic> msg = jsonDecode(data);
 
   switch (msg[ACTION]) {
     case MUTATING:
@@ -158,7 +157,7 @@ void onReceiveMutating(Map<String, Object> msg) {
     ..append(bodyFrag)
     ..append(touchCursor);
 
-  var scrollY = int.parse(msg[SCROLL_Y]);
+  var scrollY = msg[SCROLL_Y];
   window.scrollTo(0, scrollY);
 }
 
