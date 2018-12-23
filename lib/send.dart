@@ -81,11 +81,10 @@ void listenClick() {
     if (tagName == "body" || tagName == "html") {
       return;
     }
-    var msg = {
-      ACTION: CLICK,
+
+    send(CLICK, {
       XPATH: getXpath(element),
-    };
-    sendWebSocket.send(jsonEncode(msg));
+    });
   });
 }
 
@@ -101,24 +100,20 @@ void listenScroll() {
   // addEventListenerでもだめだった。
   window.onScroll.listen((e) {
     var msg = {
-      ACTION: SCROLL,
       SCROLL_Y: window.scrollY,
     };
-    sendWebSocket.send(jsonEncode(msg));
+    send(SCROLL, msg);
   });
 }
 
 void sendHtml() {
-  if (sendWebSocket == null) {
-    return;
-  }
   var msg = {
-    ACTION: MUTATING,
     HEAD: document.head.innerHtml,
     BODY: document.body.innerHtml,
     URL: window.location.href,
+    SCROLL_Y: window.scrollY,
   };
-  sendWebSocket.send(jsonEncode(msg));
+  send(MUTATING, msg);
 }
 
 void listenMutation() {

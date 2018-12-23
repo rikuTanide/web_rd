@@ -120,6 +120,9 @@ void onReceiveMutating(Map<String, Object> msg) {
     ..nodes.clear()
     ..append(bodyFrag)
     ..append(touchCursor);
+
+  var scrollY = int.parse(msg[SCROLL_Y]);
+  window.scrollTo(0, scrollY);
 }
 
 void sanitize(DocumentFragment frag) {

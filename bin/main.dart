@@ -4,7 +4,6 @@ import 'dart:convert';
 
 import 'package:websocket_rd/consts.dart';
 
-
 void main() {
   HttpServer.bind(Platform.environment['DART_HOST'],
           int.parse(Platform.environment['DART_PORT']))
@@ -99,19 +98,21 @@ void onMutating(Map<String, Object> msgMap) {
   String head = msgMap[HEAD];
   String body = msgMap[BODY];
   String url = msgMap[URL];
+  int scrollY = msgMap[SCROLL_Y];
   if (receiveWebSocket == null) {
     return;
   }
 
-  sendHtml(head, body, url);
+  sendHtml(head, body, url, scrollY);
 }
 
-void sendHtml(String head, String body, String url) {
+void sendHtml(String head, String body, String url, int scrollY) {
   var msg = {
     ACTION: MUTATING,
     HEAD: head,
     BODY: body,
     URL: url,
+    SCROLL_Y: scrollY,
   };
 
   receiveWebSocket.add(jsonEncode(msg));
