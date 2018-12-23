@@ -28,8 +28,11 @@ void start(String wsHost, int wsPort) {
 
 void connectSendWebSocket(String wsHost, int wsPort) {
   sendWebSocket = new WebSocket("wss://${wsHost}:${wsPort}/send");
-  sendWebSocket.onOpen.listen((_) => sendHtml());
+  sendWebSocket.onOpen.listen((_) => onOpen());
+}
 
+void onOpen() {
+  sendHtml();
   listenMutation();
   listenScroll();
   listenClick();
@@ -39,7 +42,6 @@ void connectSendWebSocket(String wsHost, int wsPort) {
 
 void listenInput() {
   window.onKeyUp.listen((e) {
-    print("ii");
     var target = e.target;
     if (target is InputElement) {
       var xpath = getXpath(target);

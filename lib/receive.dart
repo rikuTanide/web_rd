@@ -121,7 +121,7 @@ void onReceiveMutating(Map<String, Object> msg) {
     ..append(bodyFrag)
     ..append(touchCursor);
 
-  var scrollY = int.parse(msg[SCROLL_Y]);
+  var scrollY = msg[SCROLL_Y];
   window.scrollTo(0, scrollY);
 }
 
